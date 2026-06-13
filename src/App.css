@@ -1,0 +1,180 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.app-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.league-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.league-round {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tab-content {
+  flex: 1;
+}
+
+.leagues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.league-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.league-card:hover {
+  border-color: rgba(0, 245, 147, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.league-card.active {
+  border-color: var(--green-primary);
+  background: rgba(0, 245, 147, 0.06);
+}
+
+.league-card-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.league-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.league-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.league-card-country {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.odds-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  gap: 12px;
+  text-align: center;
+}
+
+.odds-placeholder p {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.odds-placeholder span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.predictions-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(0, 245, 147, 0.06);
+  border: 1px solid rgba(0, 245, 147, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--green-primary);
+  font-weight: 500;
+}
+
+.predictions-loading-bar {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 245, 147, 0.2);
+  border-top-color: var(--green-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 24px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--glass-border);
+}
+
+.footer-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .app-top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .leagues-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .app-footer {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer-sep {
+    display: none;
+  }
+}

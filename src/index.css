@@ -1,0 +1,114 @@
+:root {
+  --bg-primary: #0A0E17;
+  --bg-secondary: #1A1F2E;
+  --bg-tertiary: #232840;
+  --green-primary: #00F593;
+  --green-dark: #00C87A;
+  --gold-primary: #F0B90B;
+  --gold-dark: #D4A309;
+  --red-primary: #FF1744;
+  --white: #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8A94A6;
+  --text-muted: #4A5060;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --card-bg: rgba(26, 31, 46, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--green-primary);
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+}
+
+input, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spotlight {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes drawPitch {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}

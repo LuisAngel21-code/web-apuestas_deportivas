@@ -1,0 +1,133 @@
+.bet-calculator {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+
+.calculator-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.calculator-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calculator-markets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.calc-market {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-xs);
+  transition: all 0.2s ease;
+}
+
+.calc-market:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.calc-market.active {
+  background: rgba(0, 245, 147, 0.1);
+  border: 1px solid rgba(0, 245, 147, 0.3);
+}
+
+.calc-market-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.calc-market-odd {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.calc-market.active .calc-market-odd {
+  color: var(--green-primary);
+}
+
+.calculator-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.calc-input-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.calc-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.calc-currency {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.calc-input {
+  width: 100px;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xs);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.calc-input:focus {
+  outline: none;
+  border-color: var(--green-primary);
+}
+
+.calculator-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calc-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calc-result-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.calc-result-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+
+.calc-result-value.win { color: var(--green-primary); }
+.calc-result-value.profit { color: var(--gold-primary); }

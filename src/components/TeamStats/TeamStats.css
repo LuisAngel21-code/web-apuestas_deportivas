@@ -1,0 +1,115 @@
+.team-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stats-columns {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.stats-team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-team.home {
+  align-items: flex-start;
+}
+
+.stats-team.away {
+  align-items: flex-end;
+}
+
+.stats-team-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stats-divider {
+  display: flex;
+  align-items: center;
+  padding-top: 20px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.team-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.stats-team.away .team-stat-row {
+  flex-direction: row-reverse;
+}
+
+.stat-label-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 70px;
+}
+
+.stats-team.away .stat-label-group {
+  flex-direction: row-reverse;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.stat-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stats-team.away .stat-bar-track {
+  direction: rtl;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  min-width: 24px;
+  text-align: center;
+}
