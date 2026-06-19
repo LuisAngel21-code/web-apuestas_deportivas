@@ -28,10 +28,10 @@ export default function App() {
         const data = await res.json();
         if (data.leagues) {
           setLeagues(data.leagues);
-          const peru = data.leagues.find(
-            (l) => l.name.includes('Liga 1') || l.country === 'Peru'
+          const worldCup = data.leagues.find(
+            (l) => l.code === 'WC'
           );
-          if (peru) setSelectedLeague(peru);
+          if (worldCup) setSelectedLeague(worldCup);
         }
       } catch (err) {
         console.error('Error fetching leagues:', err);
@@ -48,7 +48,7 @@ export default function App() {
     setError(null);
     try {
       const res = await fetch(
-        `/api/fixtures?league=${league.id}&season=${league.season}&status=NS`
+        `/api/fixtures?league=${league.id}`
       );
       const data = await res.json();
       if (data.fixtures) {
@@ -77,7 +77,7 @@ export default function App() {
       const promises = batch.map(async (fixture) => {
         try {
           const res = await fetch(
-            `/api/predictions?fixture=${fixture.id}&league=${league.id}&season=${league.season}`
+            `/api/predictions?fixture=${fixture.id}&league=${league.id}`
           );
           const data = await res.json();
           if (data.prediction) {
@@ -186,7 +186,7 @@ export default function App() {
       <footer className="app-footer">
         <span>PITCH — Predicciones deportivas</span>
         <span className="footer-sep">|</span>
-        <span>Datos via API-Football y Odds API</span>
+        <span>Datos via football-data.org y Odds API</span>
       </footer>
     </div>
   );

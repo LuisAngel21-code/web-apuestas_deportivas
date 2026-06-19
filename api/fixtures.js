@@ -1,41 +1,46 @@
-import { getFixtures } from '../lib/dataFetcher.js';
+import { getMatches } from '../lib/dataFetcher.js';
+
+const UPCOMING_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED'];
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const { league, season, status, date } = req.query;
+  const { league } = req.query;
 
-  if (!league || !season) {
-    return res.status(400).json({ error: 'league and season are required' });
+  if (!league) {
+    return res.status(400).json({ error: 'league code is required' });
   }
 
   try {
-    const fixtures = await getFixtures(league, season, status || 'NS');
+    const matches = await getMatches(league, UPCOMING_STATUSES.join(','));
 
-    const mapped = fixtures.map((f) => ({
-      id: f.fixture.id,
-      date: f.fixture.date,
-      timestamp: f.fixture.timestamp,
-      status: f.fixture.status,
-      venue: f.fixture.venue,
+    const mapped = matches.map((m) => ({
+      id: m.id,
+      date: m.utcDate,
+      timestamp: new Date(m.utcDate).getTime(),
+      status: m.status,
+      venue: m.venue || { name: '' },
       league: {
-        id: f.league.id,
-        name: f.league.name,
-        round: f.league.round,
-        logo: f.league.logo,
+        id: m.competition?.id,
+        name: m.competition?.name,
+        round: m.matchday || '',
+        logo: m.competition?.emblem || '',
       },
       homeTeam: {
-        id: f.teams.home.id,
-        name: f.teams.home.name,
-        logo: f.teams.home.logo,
+        id: m.homeTeam?.id,
+        name: m.homeTeam?.name,
+        logo: m.homeTeam?.crest || '',
       },
       awayTeam: {
-        id: f.teams.away.id,
-        name: f.teams.away.name,
-        logo: f.teams.away.logo,
+        id: m.awayTeam?.id,
+        name: m.awayTeam?.name,
+        logo: m.awayTeam?.crest || '',
       },
-      goals: f.goals,
-      score: f.score,
+      goals: {
+        home: m.score?.fullTime?.home,
+        away: m.score?.fullTime?.away,
+      },
+      score: m.score,
     }));
 
     res.status(200).json({ fixtures: mapped });

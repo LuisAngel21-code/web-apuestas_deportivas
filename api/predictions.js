@@ -1,6 +1,7 @@
 import {
-  getFixtures,
-  getTeamFixtures,
+  getMatches,
+  getTeamFinishedMatches,
+  getFinishedMatches,
 } from '../lib/dataFetcher.js';
 import { calculatePrediction } from '../lib/poissonModel.js';
 import { getOddsByFixture } from '../lib/oddsFetcher.js';
@@ -9,41 +10,41 @@ import { calculateAllValues, getBestValue, classifyValue } from '../lib/valueCal
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const { fixture, league, season, homeTeam, awayTeam, homeName, awayName, date } = req.query;
+  const { fixture, league } = req.query;
 
-  if (!fixture) {
-    return res.status(400).json({ error: 'fixture id is required' });
+  if (!fixture || !league) {
+    return res.status(400).json({ error: 'fixture id and league are required' });
   }
 
   try {
-    const fixtures = await getFixtures(league, season, 'NS');
-    const match = fixtures.find((f) => f.fixture.id === Number(fixture));
+    const matches = await getMatches(league, 'SCHEDULED,TIMED,POSTPONED');
+    const match = matches.find((m) => m.id === Number(fixture));
 
     if (!match) {
       return res.status(404).json({ error: 'Fixture not found' });
     }
 
-    const homeId = match.teams.home.id;
-    const awayId = match.teams.away.id;
+    const homeId = match.homeTeam.id;
+    const awayId = match.awayTeam.id;
 
     const [homeRecent, awayRecent, leagueFixtures] = await Promise.all([
-      getTeamFixtures(homeId, 10),
-      getTeamFixtures(awayId, 10),
-      getFixtures(league, season, 'FT'),
+      getTeamFinishedMatches(homeId, 10),
+      getTeamFinishedMatches(awayId, 10),
+      getFinishedMatches(league),
     ]);
 
     const prediction = await calculatePrediction(
       homeId,
       awayId,
-      homeRecent,
-      awayRecent,
-      leagueFixtures
+      mapTeamMatches(homeRecent, homeId),
+      mapTeamMatches(awayRecent, awayId),
+      mapLeagueMatches(leagueFixtures)
     );
 
     const oddsData = await getOddsByFixture(
-      match.teams.home.name,
-      match.teams.away.name,
-      match.fixture.date
+      match.homeTeam.name,
+      match.awayTeam.name,
+      match.utcDate
     );
 
     const apuestaTotalOdds = oddsData?.bookmakers?.['Apuesta Total'];
@@ -64,19 +65,19 @@ export default async function handler(req, res) {
 
     res.status(200).json({
       fixture: {
-        id: match.fixture.id,
-        date: match.fixture.date,
-        venue: match.fixture.venue?.name || '',
+        id: match.id,
+        date: match.utcDate,
+        venue: match.venue?.name || '',
       },
       homeTeam: {
-        id: match.teams.home.id,
-        name: match.teams.home.name,
-        logo: match.teams.home.logo,
+        id: match.homeTeam.id,
+        name: match.homeTeam.name,
+        logo: match.homeTeam.crest || '',
       },
       awayTeam: {
-        id: match.teams.away.id,
-        name: match.teams.away.name,
-        logo: match.teams.away.logo,
+        id: match.awayTeam.id,
+        name: match.awayTeam.name,
+        logo: match.awayTeam.crest || '',
       },
       prediction,
       odds,
@@ -96,4 +97,34 @@ export default async function handler(req, res) {
     console.error('Error calculating prediction:', error.message);
     res.status(500).json({ error: 'Failed to calculate prediction' });
   }
+}
+
+function mapTeamMatches(matches, teamId) {
+  return matches
+    .filter((m) => m.score?.fullTime?.home !== null && m.score?.fullTime?.away !== null)
+    .map((m) => ({
+      teams: {
+        home: { id: m.homeTeam.id },
+        away: { id: m.awayTeam.id },
+      },
+      goals: {
+        home: m.score.fullTime.home,
+        away: m.score.fullTime.away,
+      },
+    }));
+}
+
+function mapLeagueMatches(matches) {
+  return matches
+    .filter((m) => m.score?.fullTime?.home !== null && m.score?.fullTime?.away !== null)
+    .map((m) => ({
+      teams: {
+        home: { id: m.homeTeam.id },
+        away: { id: m.awayTeam.id },
+      },
+      goals: {
+        home: m.score.fullTime.home,
+        away: m.score.fullTime.away,
+      },
+    }));
 }
