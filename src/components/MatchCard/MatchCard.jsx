@@ -4,15 +4,25 @@ import PitchBar from '../PitchBar/PitchBar';
 import ValueBadge from '../ValueBadge/ValueBadge';
 import BetCalculator from '../BetCalculator/BetCalculator';
 import TeamStats from '../TeamStats/TeamStats';
-import { VSIcon, CalendarIcon } from '../Icons';
+import { VSIcon, CalendarIcon, GoalIcon } from '../Icons';
 import './MatchCard.css';
+
+function statusLabel(status) {
+  if (status === 'FINISHED') return 'Finalizado';
+  if (status === 'IN_PLAY' || status === 'PAUSED') return 'En vivo';
+  if (status === 'POSTPONED') return 'Postergado';
+  return '';
+}
 
 export default function MatchCard({ match, index }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!match) return null;
 
-  const { homeTeam, awayTeam, prediction, odds, values, bestValue, date } = match;
+  const { homeTeam, awayTeam, prediction, odds, values, bestValue, date, status, goals } = match;
+  const isFinished = status === 'FINISHED';
+  const isLive = status === 'IN_PLAY' || status === 'PAUSED';
+
   const matchDate = new Date(date);
   const formattedDate = matchDate.toLocaleDateString('es-PE', {
     day: 'numeric',
@@ -21,9 +31,16 @@ export default function MatchCard({ match, index }) {
     minute: '2-digit',
   });
 
+  const scoreTime = matchDate.toLocaleDateString('es-PE', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <motion.div
-      className="match-card"
+      className={`match-card ${isFinished ? 'finished' : ''} ${isLive ? 'live' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -38,25 +55,65 @@ export default function MatchCard({ match, index }) {
             <span className="team-name">{homeTeam?.name}</span>
           </div>
 
-          <div className="match-vs">
-            <VSIcon size={20} color="#4A5060" />
-          </div>
+          {isFinished ? (
+            <div className="match-score">
+              <span className="score-value home">{goals?.home ?? 0}</span>
+              <span className="score-sep">-</span>
+              <span className="score-value away">{goals?.away ?? 0}</span>
+            </div>
+          ) : (
+            <div className="match-vs">
+              <VSIcon size={20} color="#4A5060" />
+            </div>
+          )}
 
           <div className="match-team away">
+            <span className="team-name">{awayTeam?.name}</span>
             {awayTeam?.logo && (
               <img src={awayTeam.logo} alt="" className="team-logo" />
             )}
-            <span className="team-name">{awayTeam?.name}</span>
           </div>
         </div>
 
         <div className="match-meta">
           <CalendarIcon size={14} color="#4A5060" />
-          <span className="match-date">{formattedDate}</span>
+          <span className="match-date">
+            {isFinished ? scoreTime : formattedDate}
+          </span>
+          {isFinished && <span className="match-badge finished-badge">Finalizado</span>}
+          {isLive && <span className="match-badge live-badge">En vivo</span>}
         </div>
       </div>
 
-      {prediction && (
+      {isFinished ? (
+        <div className="match-card-body">
+          <div className="match-score-summary">
+            <div className="score-team home">
+              <span className="score-team-name">{homeTeam?.name}</span>
+              <span className="score-team-goals">{goals?.home ?? 0}</span>
+            </div>
+            <div className="score-divider">
+              <span className="score-divider-text">Final</span>
+            </div>
+            <div className="score-team away">
+              <span className="score-team-goals">{goals?.away ?? 0}</span>
+              <span className="score-team-name">{awayTeam?.name}</span>
+            </div>
+          </div>
+          {prediction && (
+            <div className="match-prediction-before">
+              <span className="prediction-before-label">Prediccion previa</span>
+              <PitchBar
+                homeProb={prediction.probabilities.home}
+                drawProb={prediction.probabilities.draw}
+                awayProb={prediction.probabilities.away}
+                homeName={homeTeam?.name}
+                awayName={awayTeam?.name}
+              />
+            </div>
+          )}
+        </div>
+      ) : prediction ? (
         <div className="match-card-body">
           <PitchBar
             homeProb={prediction.probabilities.home}
@@ -119,7 +176,7 @@ export default function MatchCard({ match, index }) {
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {expanded && prediction && (
         <motion.div

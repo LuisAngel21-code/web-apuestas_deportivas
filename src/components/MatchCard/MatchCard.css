@@ -10,6 +10,19 @@
   overflow: hidden;
 }
 
+.match-card.finished {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.match-card.finished::before {
+  background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+}
+
+.match-card.finished:hover {
+  border-color: rgba(240, 185, 11, 0.2);
+  box-shadow: 0 0 30px rgba(240, 185, 11, 0.05);
+}
+
 .match-card::before {
   content: '';
   position: absolute;
@@ -92,6 +105,32 @@
   background: var(--bg-tertiary);
 }
 
+.match-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0 12px;
+}
+
+.score-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-value.home { color: var(--green-primary); }
+.score-value.away { color: var(--red-primary); }
+
+.score-sep {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
 .match-meta {
   display: flex;
   align-items: center;
@@ -105,11 +144,101 @@
   font-weight: 500;
 }
 
+.match-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.finished-badge {
+  color: var(--gold-primary);
+  background: rgba(240, 185, 11, 0.12);
+}
+
+.live-badge {
+  color: var(--red-primary);
+  background: rgba(255, 23, 68, 0.12);
+  animation: pulse 1.5s infinite;
+}
+
 .match-card-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 16px;
+}
+
+.match-score-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+.score-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-team.away {
+  flex-direction: row-reverse;
+}
+
+.score-team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-team-goals {
+  font-family: var(--font-display);
+  font-size: 48px;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-team:first-child .score-team-goals { color: var(--green-primary); }
+.score-team:last-child .score-team-goals { color: var(--red-primary); }
+
+.score-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-divider-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.match-prediction-before {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prediction-before-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .match-probabilities {
@@ -126,6 +255,7 @@
   padding: 8px;
   border-radius: var(--radius-xs);
   background: rgba(255, 255, 255, 0.03);
+  text-align: center;
 }
 
 .prob-item.home { border-bottom: 2px solid var(--green-primary); }
@@ -145,6 +275,7 @@
   letter-spacing: 1px;
   color: var(--text-primary);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .match-expected-goals {
@@ -219,6 +350,14 @@
 
   .team-name {
     font-size: 13px;
+  }
+
+  .score-value {
+    font-size: 26px;
+  }
+
+  .score-team-goals {
+    font-size: 36px;
   }
 
   .prob-value {

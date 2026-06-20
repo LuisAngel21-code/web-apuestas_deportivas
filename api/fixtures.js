@@ -3,7 +3,7 @@ import { calculatePrediction } from '../lib/poissonModel.js';
 import { getOddsByFixture } from '../lib/oddsFetcher.js';
 import { calculateAllValues, getBestValue, classifyValue } from '../lib/valueCalculator.js';
 
-const UPCOMING_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED'];
+const ALL_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED', 'FINISHED', 'IN_PLAY', 'PAUSED'];
 const CACHE_TTL = 5 * 60 * 1000;
 const cache = new Map();
 
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const matches = await getMatches(league, UPCOMING_STATUSES.join(','));
+    const matches = await getMatches(league, ALL_STATUSES.join(','));
 
     const dateFiltered = date
       ? matches.filter((m) => m.utcDate?.startsWith(date))
