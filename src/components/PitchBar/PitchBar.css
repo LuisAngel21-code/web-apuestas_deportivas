@@ -14,11 +14,8 @@
 }
 
 .pitch-segment {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 100%;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative;
 }
 
 .pitch-segment.home {
@@ -31,16 +28,6 @@
 
 .pitch-segment.away {
   background: linear-gradient(135deg, rgba(255, 23, 68, 0.25), rgba(255, 23, 68, 0.1));
-}
-
-.pitch-percent {
-  font-family: var(--font-display);
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.9);
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .pitch-lines {
@@ -73,13 +60,24 @@
   opacity: 0.2;
 }
 
-.pitch-ball {
+.pitch-percentages {
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: drop-shadow(0 0 6px rgba(0, 245, 147, 0.6));
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pitch-pct {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-50%);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pitch-labels {
