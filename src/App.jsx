@@ -88,6 +88,19 @@ export default function App() {
     );
   }, [fixtures, searchLower]);
 
+  function formatDateLabel(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('es-PE', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  }
+
+  const handleGoToDate = useCallback((dateStr) => {
+    setSelectedDate(dateStr.split('T')[0] || dateStr);
+  }, []);
+
   return (
     <div className="app">
       <BallAnimation />
@@ -131,6 +144,9 @@ export default function App() {
                 error={error}
                 predictions={predictions}
                 searchQuery={searchQuery}
+                availableDates={availableDates}
+                onGoToDate={() => handleGoToDate(availableDates?.[0])}
+                hasLeague={!!selectedLeague}
               />
             )}
           </>

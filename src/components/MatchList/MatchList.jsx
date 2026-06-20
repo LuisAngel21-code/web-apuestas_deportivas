@@ -1,13 +1,22 @@
 import MatchCard from '../MatchCard/MatchCard';
+import FootballCharacter from '../FootballCharacter/FootballCharacter';
 import { LoadingBall } from '../Icons';
 import './MatchList.css';
 
-export default function MatchList({ fixtures, loading, error, predictions }) {
+export default function MatchList({
+  fixtures,
+  loading,
+  error,
+  predictions,
+  searchQuery,
+  availableDates,
+  onGoToDate,
+  hasLeague,
+}) {
   if (loading) {
     return (
       <div className="match-list-empty">
-        <LoadingBall size={40} />
-        <p className="match-list-text">Cargando partidos...</p>
+        <FootballCharacter type="loading" />
       </div>
     );
   }
@@ -15,21 +24,33 @@ export default function MatchList({ fixtures, loading, error, predictions }) {
   if (error) {
     return (
       <div className="match-list-empty">
+        <FootballCharacter type="error" />
         <p className="match-list-error">{error}</p>
       </div>
     );
   }
 
-  if (!fixtures || fixtures.length === 0) {
+  if (!hasLeague) {
     return (
       <div className="match-list-empty">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4A5060" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 2v20" />
-          <path d="M2 12h20" />
-        </svg>
-        <p className="match-list-text">No hay partidos disponibles</p>
-        <p className="match-list-sub">Selecciona una liga para ver los proximos encuentros</p>
+        <FootballCharacter type="empty-league" />
+      </div>
+    );
+  }
+
+  if (!fixtures || fixtures.length === 0) {
+    const nextDate = availableDates?.[0];
+    return (
+      <div className="match-list-empty">
+        {searchQuery ? (
+          <FootballCharacter type="empty-search" />
+        ) : (
+          <FootballCharacter
+            type="empty-date"
+            nextDate={nextDate}
+            onGoToDate={onGoToDate}
+          />
+        )}
       </div>
     );
   }
