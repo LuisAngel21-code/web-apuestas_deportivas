@@ -4,6 +4,26 @@ import { getOddsByFixture } from '../lib/oddsFetcher.js';
 import { calculateAllValues, getBestValue, classifyValue } from '../lib/valueCalculator.js';
 
 const UPCOMING_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED'];
+const CACHE_TTL = 5 * 60 * 1000;
+const cache = new Map();
+
+function cacheGet(key) {
+  const entry = cache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  return null;
+}
+
+function cacheSet(key, data) {
+  cache.set(key, { data, ts: Date.now() });
+  if (cache.size > 200) {
+    const first = cache.keys().next().value;
+    if (first) cache.delete(first);
+  }
+}
+
+function cacheKey(league, date) {
+  return `${league}:${date || 'all'}`;
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,6 +32,12 @@ export default async function handler(req, res) {
 
   if (!league) {
     return res.status(400).json({ error: 'league code is required' });
+  }
+
+  const cKey = cacheKey(league, date);
+  const cached = cacheGet(cKey);
+  if (cached) {
+    return res.status(200).json(cached);
   }
 
   try {
@@ -38,10 +64,49 @@ export default async function handler(req, res) {
       ),
     ].sort();
 
-    const [teamMatchesMap, leagueFinished] = await Promise.all([
-      getTeamMatchesBatch(teamIds, 10),
-      getFinishedMatches(league),
-    ]);
+    let teamMatchesMap = {};
+    let leagueFinished = [];
+    let rateLimited = false;
+
+    if (teamIds.length > 0) {
+      const leagueCacheKey = `league:${league}`;
+      leagueFinished = cacheGet(leagueCacheKey);
+
+      const uncachedTeams = [];
+      for (const tid of teamIds) {
+        const tCacheKey = `team:${league}:${tid}`;
+        const td = cacheGet(tCacheKey);
+        if (td) teamMatchesMap[tid] = td;
+        else uncachedTeams.push(tid);
+      }
+
+      if (uncachedTeams.length > 0) {
+        try {
+          const freshTeams = await getTeamMatchesBatch(uncachedTeams, 10);
+          for (const tid of uncachedTeams) {
+            const data = freshTeams[tid] || [];
+            teamMatchesMap[tid] = data;
+            cacheSet(`team:${league}:${tid}`, data);
+          }
+        } catch (teamErr) {
+          console.error('Team data fetch failed (rate limit?):', teamErr.message);
+          rateLimited = true;
+          for (const tid of uncachedTeams) {
+            teamMatchesMap[tid] = [];
+          }
+        }
+      }
+
+      if (!leagueFinished) {
+        try {
+          leagueFinished = await getFinishedMatches(league);
+          cacheSet(leagueCacheKey, leagueFinished);
+        } catch (leagueErr) {
+          console.error('League finished fetch failed:', leagueErr.message);
+          leagueFinished = [];
+        }
+      }
+    }
 
     const allFixtures = mapLeagueMatches(leagueFinished);
     const predictions = {};
@@ -53,13 +118,12 @@ export default async function handler(req, res) {
       const homeRecent = mapTeamMatches(teamMatchesMap[homeId] || [], homeId);
       const awayRecent = mapTeamMatches(teamMatchesMap[awayId] || [], awayId);
 
-      const prediction = await calculatePrediction(
-        homeId,
-        awayId,
-        homeRecent,
-        awayRecent,
-        allFixtures
-      );
+      let prediction;
+      try {
+        prediction = await calculatePrediction(homeId, awayId, homeRecent, awayRecent, allFixtures);
+      } catch {
+        prediction = { probabilities: { home: 33.3, draw: 33.3, away: 33.4 }, expectedGoals: { home: 1.25, away: 1.25 }, mostLikelyScore: { home: 1, away: 1 } };
+      }
 
       const oddsData = await getOddsByFixture(
         match.homeTeam.name,
@@ -129,11 +193,17 @@ export default async function handler(req, res) {
       score: m.score,
     })).filter((f) => f.homeTeam.id && f.awayTeam.id);
 
-    res.status(200).json({
+    const response = {
       fixtures: mapped,
       predictions,
       availableDates: allDates,
-    });
+      _cached: true,
+      _rateLimited: rateLimited || undefined,
+    };
+
+    cacheSet(cKey, response);
+
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error fetching fixtures:', error.message);
     res.status(500).json({ error: 'Failed to fetch fixtures' });
