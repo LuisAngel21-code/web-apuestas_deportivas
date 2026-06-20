@@ -18,7 +18,6 @@ export default function App() {
   const [predictions, setPredictions] = useState({});
   const [loading, setLoading] = useState(true);
   const [fixturesLoading, setFixturesLoading] = useState(false);
-  const [predictionsLoading, setPredictionsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -53,8 +52,8 @@ export default function App() {
       const data = await res.json();
       if (data.fixtures) {
         setFixtures(data.fixtures);
-        if (data.fixtures.length > 0) {
-          fetchAllPredictions(data.fixtures, league);
+        if (data.predictions) {
+          setPredictions(data.predictions);
         }
       } else {
         setFixtures([]);
@@ -66,33 +65,6 @@ export default function App() {
       setFixturesLoading(false);
     }
   }, []);
-
-  const fetchAllPredictions = async (fixtureList, league) => {
-    setPredictionsLoading(true);
-    const results = {};
-    const batchSize = 5;
-
-    for (let i = 0; i < fixtureList.length; i += batchSize) {
-      const batch = fixtureList.slice(i, i + batchSize);
-      const promises = batch.map(async (fixture) => {
-        try {
-          const res = await fetch(
-            `/api/predictions?fixture=${fixture.id}&league=${league.id}`
-          );
-          const data = await res.json();
-          if (data.prediction) {
-            results[fixture.id] = data;
-          }
-        } catch {
-          // silent fail for individual predictions
-        }
-      });
-      await Promise.all(promises);
-    }
-
-    setPredictions(results);
-    setPredictionsLoading(false);
-  };
 
   useEffect(() => {
     if (selectedLeague) {
@@ -175,12 +147,7 @@ export default function App() {
           </div>
         )}
 
-        {predictionsLoading && (
-          <div className="predictions-loading">
-            <div className="predictions-loading-bar" />
-            <span>Calculando predicciones...</span>
-          </div>
-        )}
+        
       </main>
 
       <footer className="app-footer">

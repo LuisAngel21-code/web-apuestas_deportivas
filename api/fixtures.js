@@ -1,4 +1,7 @@
-import { getMatches } from '../lib/dataFetcher.js';
+import { getMatches, getFinishedMatches, getTeamMatchesBatch } from '../lib/dataFetcher.js';
+import { calculatePrediction } from '../lib/poissonModel.js';
+import { getOddsByFixture } from '../lib/oddsFetcher.js';
+import { calculateAllValues, getBestValue, classifyValue } from '../lib/valueCalculator.js';
 
 const UPCOMING_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED'];
 
@@ -13,6 +16,76 @@ export default async function handler(req, res) {
 
   try {
     const matches = await getMatches(league, UPCOMING_STATUSES.join(','));
+
+    const validMatches = matches.filter(
+      (m) => m.homeTeam?.id && m.awayTeam?.id
+    );
+
+    const teamIds = [
+      ...new Set(validMatches.flatMap((m) => [m.homeTeam.id, m.awayTeam.id])),
+    ];
+
+    const [teamMatchesMap, leagueFinished] = await Promise.all([
+      getTeamMatchesBatch(teamIds, 10),
+      getFinishedMatches(league),
+    ]);
+
+    const allFixtures = mapLeagueMatches(leagueFinished);
+    const predictions = {};
+
+    for (const match of validMatches) {
+      const homeId = match.homeTeam.id;
+      const awayId = match.awayTeam.id;
+
+      const homeRecent = mapTeamMatches(teamMatchesMap[homeId] || [], homeId);
+      const awayRecent = mapTeamMatches(teamMatchesMap[awayId] || [], awayId);
+
+      const prediction = await calculatePrediction(
+        homeId,
+        awayId,
+        homeRecent,
+        awayRecent,
+        allFixtures
+      );
+
+      const oddsData = await getOddsByFixture(
+        match.homeTeam.name,
+        match.awayTeam.name,
+        match.utcDate
+      );
+
+      const apuestaTotalOdds = oddsData?.bookmakers?.['Apuesta Total'];
+      let odds = null;
+      if (apuestaTotalOdds) {
+        const moneyline = apuestaTotalOdds.find((m) => m.name === 'Moneyline');
+        if (moneyline?.odds?.[0]) {
+          odds = {
+            home: parseFloat(moneyline.odds[0].home),
+            draw: parseFloat(moneyline.odds[0].draw),
+            away: parseFloat(moneyline.odds[0].away),
+          };
+        }
+      }
+
+      const values = calculateAllValues(prediction.probabilities, odds);
+      const bestValue = getBestValue(values);
+
+      predictions[match.id] = {
+        prediction,
+        odds,
+        values,
+        bestValue: bestValue
+          ? {
+              market: bestValue.market,
+              label: bestValue.label,
+              odd: bestValue.odd,
+              value: bestValue.value,
+              classification: classifyValue(bestValue.value),
+              probability: bestValue.probability,
+            }
+          : null,
+      };
+    }
 
     const mapped = matches.map((m) => ({
       id: m.id,
@@ -43,9 +116,39 @@ export default async function handler(req, res) {
       score: m.score,
     }));
 
-    res.status(200).json({ fixtures: mapped });
+    res.status(200).json({ fixtures: mapped, predictions });
   } catch (error) {
     console.error('Error fetching fixtures:', error.message);
     res.status(500).json({ error: 'Failed to fetch fixtures' });
   }
+}
+
+function mapTeamMatches(matches, teamId) {
+  return matches
+    .filter((m) => m.score?.fullTime?.home !== null && m.score?.fullTime?.away !== null)
+    .map((m) => ({
+      teams: {
+        home: { id: m.homeTeam.id },
+        away: { id: m.awayTeam.id },
+      },
+      goals: {
+        home: m.score.fullTime.home,
+        away: m.score.fullTime.away,
+      },
+    }));
+}
+
+function mapLeagueMatches(matches) {
+  return matches
+    .filter((m) => m.score?.fullTime?.home !== null && m.score?.fullTime?.away !== null)
+    .map((m) => ({
+      teams: {
+        home: { id: m.homeTeam.id },
+        away: { id: m.awayTeam.id },
+      },
+      goals: {
+        home: m.score.fullTime.home,
+        away: m.score.fullTime.away,
+      },
+    }));
 }
