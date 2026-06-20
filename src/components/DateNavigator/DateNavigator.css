@@ -1,0 +1,53 @@
+.date-navigator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.date-nav-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--green-primary);
+  border-color: rgba(0, 245, 147, 0.3);
+}
+
+.date-nav-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+}
+
+.date-nav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.date-nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.date-nav-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}

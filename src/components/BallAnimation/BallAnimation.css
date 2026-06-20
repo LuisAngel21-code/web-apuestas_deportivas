@@ -1,0 +1,23 @@
+.ball-animation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  gap: 24px;
+}
+
+.ball-animation-ball {
+  filter: drop-shadow(0 0 20px rgba(0, 245, 147, 0.3));
+}
+
+.ball-animation-text {
+  font-family: var(--font-display);
+  font-size: 36px;
+  letter-spacing: 6px;
+  color: var(--green-primary);
+  opacity: 0.8;
+}

@@ -8,7 +8,7 @@ const UPCOMING_STATUSES = ['SCHEDULED', 'TIMED', 'POSTPONED'];
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const { league } = req.query;
+  const { league, date } = req.query;
 
   if (!league) {
     return res.status(400).json({ error: 'league code is required' });
@@ -17,13 +17,26 @@ export default async function handler(req, res) {
   try {
     const matches = await getMatches(league, UPCOMING_STATUSES.join(','));
 
-    const validMatches = matches.filter(
+    const dateFiltered = date
+      ? matches.filter((m) => m.utcDate?.startsWith(date))
+      : matches;
+
+    const validMatches = dateFiltered.filter(
       (m) => m.homeTeam?.id && m.awayTeam?.id
     );
 
     const teamIds = [
       ...new Set(validMatches.flatMap((m) => [m.homeTeam.id, m.awayTeam.id])),
     ];
+
+    const allDates = [
+      ...new Set(
+        matches
+          .filter((m) => m.homeTeam?.id && m.awayTeam?.id)
+          .map((m) => m.utcDate?.split('T')[0])
+          .filter(Boolean)
+      ),
+    ].sort();
 
     const [teamMatchesMap, leagueFinished] = await Promise.all([
       getTeamMatchesBatch(teamIds, 10),
@@ -87,7 +100,7 @@ export default async function handler(req, res) {
       };
     }
 
-    const mapped = matches.map((m) => ({
+    const mapped = dateFiltered.map((m) => ({
       id: m.id,
       date: m.utcDate,
       timestamp: new Date(m.utcDate).getTime(),
@@ -114,9 +127,13 @@ export default async function handler(req, res) {
         away: m.score?.fullTime?.away,
       },
       score: m.score,
-    }));
+    })).filter((f) => f.homeTeam.id && f.awayTeam.id);
 
-    res.status(200).json({ fixtures: mapped, predictions });
+    res.status(200).json({
+      fixtures: mapped,
+      predictions,
+      availableDates: allDates,
+    });
   } catch (error) {
     console.error('Error fetching fixtures:', error.message);
     res.status(500).json({ error: 'Failed to fetch fixtures' });

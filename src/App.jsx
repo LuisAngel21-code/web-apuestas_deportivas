@@ -1,13 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Header from './components/Header/Header';
 import CompetitionSelector from './components/CompetitionSelector/CompetitionSelector';
 import MatchList from './components/MatchList/MatchList';
 import LoadingSkeleton from './components/LoadingSkeleton/LoadingSkeleton';
+import DateNavigator from './components/DateNavigator/DateNavigator';
+import SearchBar from './components/SearchBar/SearchBar';
+import BallAnimation from './components/BallAnimation/BallAnimation';
 import { FootballIcon, GoalIcon } from './components/Icons';
 import './App.css';
 
-function formatDate(date) {
-  return date.toISOString().split('T')[0];
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
 }
 
 export default function App() {
@@ -16,6 +19,9 @@ export default function App() {
   const [selectedLeague, setSelectedLeague] = useState(null);
   const [fixtures, setFixtures] = useState([]);
   const [predictions, setPredictions] = useState({});
+  const [availableDates, setAvailableDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(todayStr());
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [fixturesLoading, setFixturesLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,9 +33,7 @@ export default function App() {
         const data = await res.json();
         if (data.leagues) {
           setLeagues(data.leagues);
-          const worldCup = data.leagues.find(
-            (l) => l.code === 'WC'
-          );
+          const worldCup = data.leagues.find((l) => l.code === 'WC');
           if (worldCup) setSelectedLeague(worldCup);
         }
       } catch (err) {
@@ -41,19 +45,21 @@ export default function App() {
     fetchLeagues();
   }, []);
 
-  const fetchFixtures = useCallback(async (league) => {
+  const fetchFixtures = useCallback(async (league, date) => {
     if (!league) return;
     setFixturesLoading(true);
     setError(null);
     try {
-      const res = await fetch(
-        `/api/fixtures?league=${league.id}`
-      );
+      const url = date
+        ? `/api/fixtures?league=${league.id}&date=${date}`
+        : `/api/fixtures?league=${league.id}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.fixtures) {
         setFixtures(data.fixtures);
-        if (data.predictions) {
-          setPredictions(data.predictions);
+        setPredictions(data.predictions || {});
+        if (data.availableDates) {
+          setAvailableDates(data.availableDates);
         }
       } else {
         setFixtures([]);
@@ -68,12 +74,23 @@ export default function App() {
 
   useEffect(() => {
     if (selectedLeague) {
-      fetchFixtures(selectedLeague);
+      fetchFixtures(selectedLeague, selectedDate);
     }
-  }, [selectedLeague, fetchFixtures]);
+  }, [selectedLeague, selectedDate, fetchFixtures]);
+
+  const searchLower = searchQuery.toLowerCase().trim();
+  const filteredFixtures = useMemo(() => {
+    if (!searchLower) return fixtures;
+    return fixtures.filter(
+      (f) =>
+        f.homeTeam?.name?.toLowerCase().includes(searchLower) ||
+        f.awayTeam?.name?.toLowerCase().includes(searchLower)
+    );
+  }, [fixtures, searchLower]);
 
   return (
     <div className="app">
+      <BallAnimation />
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="app-main">
@@ -96,14 +113,24 @@ export default function App() {
 
         {activeTab === 'matches' && (
           <>
+            <div className="app-controls">
+              <DateNavigator
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+                availableDates={availableDates}
+              />
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
+
             {fixturesLoading ? (
               <LoadingSkeleton count={6} />
             ) : (
               <MatchList
-                fixtures={fixtures}
+                fixtures={filteredFixtures}
                 loading={fixturesLoading}
                 error={error}
                 predictions={predictions}
+                searchQuery={searchQuery}
               />
             )}
           </>
@@ -116,7 +143,12 @@ export default function App() {
                 <button
                   key={league.id}
                   className={`league-card ${selectedLeague?.id === league.id ? 'active' : ''}`}
-                  onClick={() => setSelectedLeague(league)}
+                  onClick={() => {
+                    setSelectedLeague(league);
+                    setSelectedDate(todayStr());
+                    setSearchQuery('');
+                    setActiveTab('matches');
+                  }}
                 >
                   {league.logo ? (
                     <img src={league.logo} alt="" className="league-card-logo" />
@@ -146,8 +178,6 @@ export default function App() {
             </div>
           </div>
         )}
-
-        
       </main>
 
       <footer className="app-footer">
